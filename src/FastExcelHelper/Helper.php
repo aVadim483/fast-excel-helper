@@ -39,18 +39,23 @@ class Helper
         if (isset($colNumbers[$colLetter])) {
             return $colNumbers[$colLetter];
         }
-        // Strip cell reference down to just letters
-        $letters = preg_replace('/[^A-Z]/i', '', strtoupper($colLetter));
-
-        if (strlen($letters) >= 3 && $letters > 'XFD') {
-            return self::EXCEL_2007_MAX_COL;
+        if (is_numeric($colLetter)) {
+            $colNumbers[$colLetter] = (int)$colLetter;
         }
-        // Iterate through each letter, starting at the back to increment the value
-        for ($index = 0, $i = 0; $letters !== ''; $letters = substr($letters, 0, -1), $i++) {
-            $index += (ord(substr($letters, -1)) - 64) * (26 ** $i);
-        }
+        else {
+            // Strip cell reference down to just letters
+            $letters = preg_replace('/[^A-Z]/i', '', strtoupper($colLetter));
 
-        $colNumbers[$colLetter] = ($index <= self::EXCEL_2007_MAX_COL) ? (int)$index : -1;
+            if (strlen($letters) >= 3 && $letters > 'XFD') {
+                return self::EXCEL_2007_MAX_COL;
+            }
+            // Iterate through each letter, starting at the back to increment the value
+            for ($index = 0, $i = 0; $letters !== ''; $letters = substr($letters, 0, -1), $i++) {
+                $index += (ord(substr($letters, -1)) - 64) * (26 ** $i);
+            }
+
+            $colNumbers[$colLetter] = ($index <= self::EXCEL_2007_MAX_COL) ? (int)$index : -1;
+        }
 
         return $colNumbers[$colLetter];
     }
