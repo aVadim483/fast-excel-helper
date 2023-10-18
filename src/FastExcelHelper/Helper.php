@@ -258,7 +258,7 @@ class Helper
         $l = ($max + $min) / 2;
         $d = $max - $min;
 
-        if ($d !== 0.0 ){
+        if ($d !== 0) {
             $s = $d / (1 - abs(2 * $l - 1));
 
             switch ($max) {
