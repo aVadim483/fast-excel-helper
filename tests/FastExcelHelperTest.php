@@ -71,6 +71,8 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals('AP$38', Helper::cellAddress(38, 42, false, true));
         $this->assertEquals('AP38', Helper::cellAddress(38, 42, false, false));
         $this->assertEquals('XFD' . Helper::EXCEL_2007_MAX_ROW, Helper::cellAddress(Helper::EXCEL_2007_MAX_ROW, Helper::EXCEL_2007_MAX_COL));
+
+        $this->assertEquals('#bf9000', Helper::correctColor('#FFC000', -0.249977111117893));
     }
 
 }

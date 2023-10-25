@@ -325,6 +325,8 @@ class Helper
         $g = ($g + $m) * 255;
         $b = ($b + $m) * 255;
 
-        return '#' . dechex((int)floor($r)) . dechex((int)floor($g)) . dechex((int)floor($b));
+        return '#' . str_pad(dechex((int)floor($r)), 2, '0', STR_PAD_LEFT)
+            . str_pad(dechex((int)floor($g)), 2, '0', STR_PAD_LEFT)
+            . str_pad(dechex((int)floor($b)), 2, '0', STR_PAD_LEFT);
     }
 }
