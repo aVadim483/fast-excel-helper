@@ -166,7 +166,11 @@ class Helper
                     return $columns;
                 }
                 else {
-                    $columns = $colKeys;
+                    $res = [];
+                    foreach ($colKeys as $col) {
+                        $res[] = self::colLetterRange($col);
+                    }
+                    $columns = array_merge(...$res);
                 }
                 return $columns;
             }

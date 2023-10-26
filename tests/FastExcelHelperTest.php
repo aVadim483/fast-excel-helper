@@ -61,6 +61,7 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals(['', 'A', 'B'], Helper::colLetterRange([0, 1, 2], 1));
         $this->assertEquals(['B', 'E', 'F'], Helper::colLetterRange('B, E, F'));
         $this->assertEquals(['B', 'C', 'D', 'E', 'F'], Helper::colLetterRange('B-E, F'));
+        $this->assertEquals(['B', 'C', 'D', 'E', 'F'], Helper::colLetterRange(['B-E', 'F']));
         $this->assertEquals(['B', 'C', 'D', 'E'], Helper::colLetterRange('B1-E8'));
         $this->assertEquals(['B:E'], Helper::colLetterRange('B1:E8'));
         $this->assertEquals(['B:E'], Helper::colLetterRange('$B1:E$8'));
