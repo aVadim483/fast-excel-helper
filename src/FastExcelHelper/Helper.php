@@ -250,6 +250,29 @@ class Helper
         return $result;
     }
 
+    /**
+     * @param string $cellAddress
+     * @param string $range
+     *
+     * @return bool
+     */
+    public static function inRange(string $cellAddress, string $range): bool
+    {
+        $cellArr = self::rangeArray($cellAddress);
+        $rangeArr = self::rangeArray($range);
+
+        return $cellArr['min_col_num'] >= $rangeArr['min_col_num']
+            && $cellArr['min_col_num'] <= $rangeArr['max_col_num']
+            && $cellArr['min_row_num'] >= $rangeArr['min_row_num']
+            && $cellArr['min_row_num'] <= $rangeArr['max_row_num'];
+    }
+
+    /**
+     * @param string $rgb
+     * @param float $tint
+     *
+     * @return string
+     */
     public static function correctColor(string $rgb, float $tint): string
     {
         $hsl = self::rgbToHsl($rgb);
@@ -267,6 +290,11 @@ class Helper
         return self::hslToRgb($hsl);
     }
 
+    /**
+     * @param string $rgb
+     *
+     * @return array
+     */
     protected static function rgbToHsl(string $rgb): array
     {
         if ($rgb[0] === '#') {
