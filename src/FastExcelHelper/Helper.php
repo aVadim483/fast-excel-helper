@@ -110,6 +110,27 @@ class Helper
     }
 
     /**
+     * colLetterNext(2) => 'C'
+     * colLetterNext('AB') => 'AC'
+     * colLetterNext('FA34') => 'FB34'
+     *
+     * @param $col
+     *
+     * @return string
+     */
+    public static function colLetterNext($col): string
+    {
+        if (is_numeric($col)) {
+            return self::colLetter($col + 1);
+        }
+        if (preg_match('/^([a-z]+)(\d+)?$/i', $col, $m)) {
+            return self::colLetter(self::colNumber($m[1]) + 1) . ($m[2] ?? '');
+        }
+
+        return '';
+    }
+
+    /**
      * Create cell address by row and col numbers
      *
      * @param int $rowNumber ONE based

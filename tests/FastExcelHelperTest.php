@@ -74,6 +74,11 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals('XFD' . Helper::EXCEL_2007_MAX_ROW, Helper::cellAddress(Helper::EXCEL_2007_MAX_ROW, Helper::EXCEL_2007_MAX_COL));
 
         $this->assertEquals('#bf9000', Helper::correctColor('#FFC000', -0.249977111117893));
+
+        $this->assertEquals('C', Helper::colLetterNext(2));
+        $this->assertEquals('C', Helper::colLetterNext('2'));
+        $this->assertEquals('AC', Helper::colLetterNext('AB'));
+        $this->assertEquals('FB34', Helper::colLetterNext('FA34'));
     }
 
 }
