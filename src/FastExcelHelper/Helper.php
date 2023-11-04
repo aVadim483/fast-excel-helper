@@ -268,6 +268,38 @@ class Helper
     }
 
     /**
+     * @param string $cellAddress
+     * @param string $targetRange
+     * @param bool|null $asArray
+     *
+     * @return array|string
+     */
+    public static function addToRange(string $cellAddress, string $targetRange, ?bool $asArray = false)
+    {
+        $cellArr = self::rangeArray($cellAddress);
+        if (empty($cellArr['max_col_letter'])) {
+            $cellArr['max_col_num'] = $cellArr['min_col_num'];
+            $cellArr['max_row_num'] = $cellArr['min_row_num'];
+        }
+        $rangeArr = self::rangeArray($targetRange);
+        if (empty($rangeArr['max_col_letter'])) {
+            $rangeArr['max_col_num'] = $rangeArr['min_col_num'];
+            $rangeArr['max_row_num'] = $rangeArr['min_row_num'];
+        }
+
+        $rangeArr['min_col_num'] = min($cellArr['min_col_num'], $rangeArr['min_col_num']);
+        $rangeArr['min_row_num'] = min($cellArr['min_row_num'], $rangeArr['min_row_num']);
+        $rangeArr['max_col_num'] = max($cellArr['max_col_num'], $rangeArr['max_col_num']);
+        $rangeArr['max_row_num'] = max($cellArr['max_row_num'], $rangeArr['max_row_num']);
+        $rangeArr['min_col_letter'] = self::colLetter($rangeArr['min_col_num']);
+        $rangeArr['max_col_letter'] = self::colLetter($rangeArr['max_col_num']);
+        $rangeArr['min_cell'] = $rangeArr['min_col_letter'] . $rangeArr['min_row_num'];
+        $rangeArr['max_cell'] = $rangeArr['max_col_letter'] . $rangeArr['max_row_num'];
+
+        return $asArray ? $rangeArr : $rangeArr['min_cell'] . ':' . $rangeArr['max_cell'];
+    }
+
+    /**
      * @param string $rgb
      * @param float $tint
      *

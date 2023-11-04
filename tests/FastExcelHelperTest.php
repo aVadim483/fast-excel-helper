@@ -84,6 +84,10 @@ final class FastExcelHelperTest extends TestCase
         $this->assertTrue(Helper::inRange('B2', 'B2:D4'));
         $this->assertTrue(Helper::inRange('D4', 'B2:D4'));
         $this->assertFalse(Helper::inRange('A3', 'B2:D4'));
+
+        $this->assertEquals('B2:D5', Helper::addToRange('b2', 'd5'));
+        $this->assertEquals('B3:D3', Helper::addToRange('C3', 'B3:D3'));
+        $this->assertEquals('B3:F5', Helper::addToRange('F5', 'B3:D3'));
     }
 
 }
