@@ -88,6 +88,10 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals('B2:D5', Helper::addToRange('b2', 'd5'));
         $this->assertEquals('B3:D3', Helper::addToRange('C3', 'B3:D3'));
         $this->assertEquals('B3:F5', Helper::addToRange('F5', 'B3:D3'));
+
+        $this->assertEquals('D5:D5', Helper::addToRange('d5', 'RC:RC'));
+        $this->assertEquals('D5:D7', Helper::addToRange('d5', 'RC:R2C'));
+        $this->assertEquals('D4:G7', Helper::addToRange('d5', 'R[-1]C:R2C3'));
     }
 
 }

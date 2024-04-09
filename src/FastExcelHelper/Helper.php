@@ -163,6 +163,7 @@ class Helper
 
     /**
      * Convert values to letters array
+     *
      *  Array [0, 1, 2] => ['A', 'B', 'C']
      *  String 'B, E, F' => ['B', 'E', 'F']
      *  String 'B-E, F' => ['B', 'C', 'D', 'E', 'F']
@@ -234,7 +235,7 @@ class Helper
     public static function rangeArray(string $range): array
     {
         $result = [];
-        if (preg_match('/^\$?([a-z]+)\$?(\d+)(:\$?([a-z]+)\$?(\d+))?/i', $range, $m)) {
+        if (preg_match('/^\$?([a-z]+)\$?(\d+)(:\$?([a-z]+)\$?(\d+))?$/i', $range, $m)) {
             $result['min_col_letter'] = strtoupper($m[1]);
             $result['min_col_num'] = self::colNumber($m[1]);
             $result['min_row_num'] = (int)$m[2];
@@ -268,6 +269,16 @@ class Helper
     }
 
     /**
+     * Add cell address to range and return new range with cell
+     *
+     * $cellAddress = 'b2', $targetRange = 'd5'; result => 'B2:D5'
+     * $cellAddress = 'C3', $targetRange = 'B3:D3'; result => 'B3:D3' // the range has not changed
+     * $cellAddress = 'F5', $targetRange = 'B3:D3'; result => 'B3:F5'
+     *
+     * $cellAddress = 'd5', $targetRange = 'RC:RC'; result => 'D5:D5'
+     * $cellAddress = 'd5', $targetRange = 'B3:D3'; result => 'RC:R2C'
+     * $cellAddress = 'd5', $targetRange = 'B3:D3'; result => 'R[-1]C:R2C3'
+     *
      * @param string $cellAddress
      * @param string $targetRange
      * @param bool|null $asArray
@@ -281,10 +292,21 @@ class Helper
             $cellArr['max_col_num'] = $cellArr['min_col_num'];
             $cellArr['max_row_num'] = $cellArr['min_row_num'];
         }
-        $rangeArr = self::rangeArray($targetRange);
-        if (empty($rangeArr['max_col_letter'])) {
-            $rangeArr['max_col_num'] = $rangeArr['min_col_num'];
-            $rangeArr['max_row_num'] = $rangeArr['min_row_num'];
+        if (preg_match('/^R\[?(-?\d+)?]?C\[?(-?\d+)?]?/i', $targetRange)) {
+            $offsets = self::rangeRelOffsets($targetRange);
+            $rangeArr = [
+                'min_row_num' => $cellArr['min_row_num'] + $offsets[0],
+                'min_col_num' => $cellArr['min_col_num'] + $offsets[1],
+                'max_row_num' => $cellArr['min_row_num'] + $offsets[2],
+                'max_col_num' => $cellArr['min_col_num'] + $offsets[3],
+            ];
+        }
+        else {
+            $rangeArr = self::rangeArray($targetRange);
+            if (empty($rangeArr['max_col_letter'])) {
+                $rangeArr['max_col_num'] = $rangeArr['min_col_num'];
+                $rangeArr['max_row_num'] = $rangeArr['min_row_num'];
+            }
         }
 
         $rangeArr['min_col_num'] = min($cellArr['min_col_num'], $rangeArr['min_col_num']);
@@ -297,6 +319,37 @@ class Helper
         $rangeArr['max_cell'] = $rangeArr['max_col_letter'] . $rangeArr['max_row_num'];
 
         return $asArray ? $rangeArr : $rangeArr['min_cell'] . ':' . $rangeArr['max_cell'];
+    }
+
+    /**
+     * Return offsets by relative address (zero based)
+     *
+     * @param string $relAddress
+     *
+     * @return int[]
+     */
+    public static function rangeRelOffsets(string $relAddress): array
+    {
+        $rowOffset1 = $colOffset1 = $rowOffset2 = $colOffset2 = null;
+        if (preg_match('/^R\[?(-?\d+)?]?C\[?(-?\d+)?]?(:R\[?(-?\d+)?]?C\[?(-?\d+)?]?)?$/', strtoupper($relAddress), $matches)) {
+            $rowOffset1 = !empty($matches[1]) ? (int)$matches[1] : 0;
+            $colOffset1 = !empty($matches[2]) ? (int)$matches[2] : 0;
+            if (!empty($matches[3])) {
+                $rowOffset2 = !empty($matches[4]) ? (int)$matches[4] : 0;
+                $colOffset2 = !empty($matches[5]) ? (int)$matches[5] : 0;
+            }
+            else {
+                $rowOffset2 = $rowOffset1;
+                $colOffset2 = $colOffset1;
+            }
+        }
+
+        return [
+            $rowOffset1,
+            $colOffset1,
+            $rowOffset2,
+            $colOffset2,
+        ];
     }
 
     /**
