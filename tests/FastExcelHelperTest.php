@@ -40,6 +40,7 @@ final class FastExcelHelperTest extends TestCase
             'min_col_num' => 2,
             'min_row_num' => 2,
             'min_cell' => 'B2',
+            'range' => 'B2:B2'
         ];
         $this->assertEquals($arr, Helper::rangeArray('b2'));
         $arr = [
@@ -51,6 +52,7 @@ final class FastExcelHelperTest extends TestCase
             'max_col_num' => 4,
             'max_row_num' => 4,
             'max_cell' => 'D4',
+            'range' => 'B2:D4'
         ];
         $this->assertEquals($arr, Helper::rangeArray('b2:d4'));
         $this->assertEquals($arr, Helper::rangeArray('$b2:D4'));
@@ -92,6 +94,14 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals('D5:D5', Helper::addToRange('d5', 'RC:RC'));
         $this->assertEquals('D5:D7', Helper::addToRange('d5', 'RC:R2C'));
         $this->assertEquals('D4:G7', Helper::addToRange('d5', 'R[-1]C:R2C3'));
+
+        $this->assertEquals('R5C2', Helper::A1toRC('D8', 'b3'));
+        $this->assertEquals('RC:R5C2', Helper::A1toRC('B3:D8', 'b3'));
+        $this->assertEquals('R[-1]C:R5C2', Helper::A1toRC('B2:D8', 'b3'));
+
+        $this->assertEquals('D8', Helper::RCtoA1('R5C2', 'b3'));
+        $this->assertEquals('B3:D8', Helper::RCtoA1('RC:R5C2', 'b3'));
+        $this->assertEquals('B2:D8', Helper::RCtoA1('R[-1]C:R5C2', 'b3'));
     }
 
 }

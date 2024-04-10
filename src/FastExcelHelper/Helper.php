@@ -246,9 +246,56 @@ class Helper
                 $result['max_row_num'] = (int)$m[5];
                 $result['max_cell'] = strtoupper($m[4] . $m[5]);
             }
+            $result['range'] = $result['min_cell'] . ':' . ($result['max_cell'] ?? $result['min_cell']);
         }
 
         return $result;
+    }
+
+    /**
+     * addressRC('D8', 'b3') => 'R5C2'
+     * addressRC('B3:D8', 'b3') => 'RC:R5C2'
+     *
+     * @param string $address
+     * @param string $cellAddress
+     *
+     * @return string
+     */
+    public static function A1toRC(string $address, string $cellAddress): string
+    {
+        $adr = Helper::rangeArray($cellAddress);
+        $dim = Helper::rangeArray($address);
+        $rowOffset1 = $dim['min_row_num'] - $adr['min_row_num'];
+        $colOffset1 = $dim['min_col_num'] - $adr['min_col_num'];
+
+        $result = 'R' . ($rowOffset1 ? (($rowOffset1 >= 0) ? $rowOffset1 : '[' . $rowOffset1 . ']') : '')
+            . 'C' . ($colOffset1 ? (($colOffset1 >= 0) ? $colOffset1 : '[' . $colOffset1 . ']') : '');
+        if (strpos($address, ':')) {
+            $rowOffset2 = $dim['max_row_num'] - $adr['min_row_num'];
+            $colOffset2 = $dim['max_col_num'] - $adr['min_col_num'];
+            $result .= ':R' . ($rowOffset2 ? (($rowOffset2 >= 0) ? $rowOffset2 : '[' . $rowOffset2 . ']') : '')
+                . 'C' . ($colOffset2 ? (($colOffset2 >= 0) ? $colOffset2 : '[' . $colOffset2 . ']') : '');
+        }
+
+        return $result;
+    }
+
+    /**
+     * RCtoA1('R5C2', 'B3') => 'D8'
+     *
+     * @param string $address
+     * @param string $cellAddress
+     *
+     * @return string
+     */
+    public static function RCtoA1(string $address, string $cellAddress): string
+    {
+        if (strpos($address, ':')) {
+            [$cell1, $cell2] = explode(':', $address);
+
+            return self::shiftAddressRC($cellAddress, $cell1) . ':' . self::shiftAddressRC($cellAddress, $cell2);
+        }
+        return self::shiftAddressRC($cellAddress, $address);
     }
 
     /**
@@ -350,6 +397,39 @@ class Helper
             $rowOffset2,
             $colOffset2,
         ];
+    }
+
+    /**
+     * @param string $cellAddress
+     * @param int $rowOffset
+     * @param int $colOffset
+     *
+     * @return string
+     */
+    public static function shiftAddress(string $cellAddress, int $rowOffset, int $colOffset): string
+    {
+        if (strpos($cellAddress, ':')) {
+            [$cell1, $cell2] = explode(':', $cellAddress);
+            return self::shiftAddress($cell1, $rowOffset, $colOffset) . ':' . self::shiftAddress($cell2, $rowOffset, $colOffset);
+        }
+        $arr = self::rangeArray($cellAddress);
+
+        return self::colLetter($arr['min_col_num'] + $colOffset) . ($arr['min_row_num'] + $rowOffset);
+    }
+
+    /**
+     * shiftAddressRC('A1', 'R2C3') => 'D3
+     *
+     * @param string $cellAddress
+     * @param string $addressRC
+     *
+     * @return string
+     */
+    public static function shiftAddressRC(string $cellAddress, string $addressRC): string
+    {
+        $offsets = self::rangeRelOffsets($addressRC);
+
+        return self::shiftAddress($cellAddress, $offsets[0], $offsets[1]);
     }
 
     /**
