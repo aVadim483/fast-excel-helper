@@ -235,60 +235,98 @@ class Helper
     public static function rangeArray(string $range): array
     {
         $result = [];
-        if (preg_match('/^\$?([a-z]+)\$?(\d+)(:\$?([a-z]+)\$?(\d+))?$/i', $range, $m)) {
-            $result['min_col_letter'] = strtoupper($m[1]);
-            $result['min_col_num'] = self::colNumber($m[1]);
-            $result['min_row_num'] = (int)$m[2];
-            $result['min_cell'] = strtoupper($m[1] . $m[2]);
-            if (!empty($m[4])) {
-                $result['max_col_letter'] = strtoupper($m[4]);
-                $result['max_col_num'] = self::colNumber($m[4]);
-                $result['max_row_num'] = (int)$m[5];
-                $result['max_cell'] = strtoupper($m[4] . $m[5]);
+        if (preg_match('/^(\$)?([a-z]+)(\$)?(\d+)(:(\$)?([a-z]+)(\$)?(\d+))?$/i', $range, $m)) {
+            $result['min_col_letter'] = strtoupper($m[2]);
+            $result['min_col_num'] = self::colNumber($m[2]);
+            $result['min_row_num'] = (int)$m[4];
+            $result['min_col_abs'] = $m[1];
+            $result['min_row_abs'] = $m[3];
+            $result['min_cell'] = strtoupper($m[2] . $m[4]);
+            $result['min_cell_abs'] = strtoupper($m[1] . $m[2] . $m[3] . $m[4]);
+            if (!empty($m[5])) {
+                $result['max_col_letter'] = strtoupper($m[7]);
+                $result['max_col_num'] = self::colNumber($m[7]);
+                $result['max_row_num'] = (int)$m[9];
+                $result['max_col_abs'] = $m[6];
+                $result['max_row_abs'] = $m[8];
+                $result['max_cell'] = strtoupper($m[7] . $m[9]);
+                $result['max_cell_abs'] = strtoupper($m[6] . $m[7] . $m[8] . $m[9]);
             }
             $result['range'] = $result['min_cell'] . ':' . ($result['max_cell'] ?? $result['min_cell']);
+            $result['range_abs'] = $result['min_cell_abs'] . ':' . ($result['max_cell_abs'] ?? $result['min_cell_abs']);
         }
 
         return $result;
     }
 
     /**
-     * addressRC('D8', 'b3') => 'R5C2'
-     * addressRC('B3:D8', 'b3') => 'RC:R5C2'
+     * addressRC('D8', 'b3') => 'R[5]C[2]'
+     * addressRC('B3:D8', 'b3') => 'RC:R[5]C[2]'
      *
      * @param string $address
-     * @param string $cellAddress
+     * @param string|null $cellAddress
      *
      * @return string
      */
-    public static function A1toRC(string $address, string $cellAddress): string
+    public static function A1toRC(string $address, ?string $cellAddress = null): string
     {
-        $adr = Helper::rangeArray($cellAddress);
         $dim = Helper::rangeArray($address);
-        $rowOffset1 = $dim['min_row_num'] - $adr['min_row_num'];
-        $colOffset1 = $dim['min_col_num'] - $adr['min_col_num'];
+        if ($cellAddress) {
+            $adr = Helper::rangeArray($cellAddress);
+            $rowOffset1 = $dim['min_row_num'] - $adr['min_row_num'];
+            $colOffset1 = $dim['min_col_num'] - $adr['min_col_num'];
 
-        $result = 'R' . ($rowOffset1 ? (($rowOffset1 >= 0) ? $rowOffset1 : '[' . $rowOffset1 . ']') : '')
-            . 'C' . ($colOffset1 ? (($colOffset1 >= 0) ? $colOffset1 : '[' . $colOffset1 . ']') : '');
-        if (strpos($address, ':')) {
-            $rowOffset2 = $dim['max_row_num'] - $adr['min_row_num'];
-            $colOffset2 = $dim['max_col_num'] - $adr['min_col_num'];
-            $result .= ':R' . ($rowOffset2 ? (($rowOffset2 >= 0) ? $rowOffset2 : '[' . $rowOffset2 . ']') : '')
-                . 'C' . ($colOffset2 ? (($colOffset2 >= 0) ? $colOffset2 : '[' . $colOffset2 . ']') : '');
+            if ($dim['min_row_abs']) {
+                $result = 'R' . $dim['min_row_num'];
+            }
+            else {
+                $result = 'R' . ($rowOffset1 ? '[' . $rowOffset1 . ']' : '');
+            }
+            if ($dim['min_col_abs']) {
+                $result .= 'C' . $dim['min_col_num'];
+            }
+            else {
+                $result .= 'C' . ($colOffset1 ? '[' . $colOffset1 . ']' : '');
+            }
+            if (strpos($address, ':')) {
+                $rowOffset2 = $dim['max_row_num'] - $adr['min_row_num'];
+                $colOffset2 = $dim['max_col_num'] - $adr['min_col_num'];
+
+                if ($dim['max_row_abs']) {
+                    $result .= ':R' . $dim['max_row_num'];
+                }
+                else {
+                    $result .= ':R' . ($rowOffset2 ? '[' . $rowOffset2 . ']' : '');
+                }
+                if ($dim['max_col_abs']) {
+                    $result .= 'C' . $dim['max_col_num'];
+                }
+                else {
+                    $result .= 'C' . ($colOffset2 ? '[' . $colOffset2 . ']' : '');
+                }
+            }
+        }
+        else {
+            $result = 'R' . $dim['min_row_num'] . 'C' . $dim['min_col_num'];
+            if (strpos($address, ':')) {
+                $result .= ':R' . $dim['max_row_num'] . 'C' . $dim['max_col_num'];
+            }
         }
 
         return $result;
     }
 
     /**
-     * RCtoA1('R5C2', 'B3') => 'D8'
+     * RCtoA1('R[5]C[2]', 'B3') => 'D8'
+     * RCtoA1('R5C[2]', 'B3') => 'D$5'
+     * RCtoA1('R5C2', 'B3') => '$B$5'
      *
      * @param string $address
      * @param string $cellAddress
      *
      * @return string
      */
-    public static function RCtoA1(string $address, string $cellAddress): string
+    public static function RCtoA1(string $address, string $cellAddress = ''): string
     {
         if (strpos($address, ':')) {
             [$cell1, $cell2] = explode(':', $address);
@@ -372,22 +410,35 @@ class Helper
      * Return offsets by relative address (zero based)
      *
      * @param string $relAddress
+     * @param array|null $absolute
      *
      * @return int[]
      */
-    public static function rangeRelOffsets(string $relAddress): array
+    public static function rangeRelOffsets(string $relAddress, ?array &$absolute = []): array
     {
         $rowOffset1 = $colOffset1 = $rowOffset2 = $colOffset2 = null;
-        if (preg_match('/^R\[?(-?\d+)?]?C\[?(-?\d+)?]?(:R\[?(-?\d+)?]?C\[?(-?\d+)?]?)?$/', strtoupper($relAddress), $matches)) {
-            $rowOffset1 = !empty($matches[1]) ? (int)$matches[1] : 0;
-            $colOffset1 = !empty($matches[2]) ? (int)$matches[2] : 0;
-            if (!empty($matches[3])) {
-                $rowOffset2 = !empty($matches[4]) ? (int)$matches[4] : 0;
-                $colOffset2 = !empty($matches[5]) ? (int)$matches[5] : 0;
+        if (preg_match('/^R(\[)?(-?\d+)?]?C(\[)?(-?\d+)?]?(:R(\[)?(-?\d+)?]?C(\[)?(-?\d+)?]?)?$/', strtoupper($relAddress), $matches)) {
+            $rowOffset1 = !empty($matches[2]) ? (int)$matches[2] : 0;
+            $colOffset1 = !empty($matches[4]) ? (int)$matches[4] : 0;
+            if (!empty($matches[5])) {
+                $rowOffset2 = !empty($matches[7]) ? (int)$matches[7] : 0;
+                $colOffset2 = !empty($matches[9]) ? (int)$matches[9] : 0;
+                $absolute = [
+                    empty($matches[1]) && !empty($matches[2]),
+                    empty($matches[3]) && !empty($matches[4]),
+                    empty($matches[6]) && !empty($matches[7]),
+                    empty($matches[8]) && !empty($matches[9]),
+                ];
             }
             else {
                 $rowOffset2 = $rowOffset1;
                 $colOffset2 = $colOffset1;
+                $absolute = [
+                    empty($matches[1]) && !empty($matches[2]),
+                    empty($matches[3]) && !empty($matches[4]),
+                    empty($matches[1]) && !empty($matches[2]),
+                    empty($matches[3]) && !empty($matches[4]),
+                ];
             }
         }
 
@@ -403,18 +454,29 @@ class Helper
      * @param string $cellAddress
      * @param int $rowOffset
      * @param int $colOffset
+     * @param array|null $absolute
      *
      * @return string
      */
-    public static function shiftAddress(string $cellAddress, int $rowOffset, int $colOffset): string
+    public static function shiftAddress(string $cellAddress, int $rowOffset, int $colOffset, ?array $absolute = []): string
     {
         if (strpos($cellAddress, ':')) {
             [$cell1, $cell2] = explode(':', $cellAddress);
-            return self::shiftAddress($cell1, $rowOffset, $colOffset) . ':' . self::shiftAddress($cell2, $rowOffset, $colOffset);
+            return self::shiftAddress($cell1, $rowOffset, $colOffset, $absolute) . ':'
+                . self::shiftAddress($cell2, $rowOffset, $colOffset, [!empty($absolute[2]), !empty($absolute[3])]);
         }
-        $arr = self::rangeArray($cellAddress);
+        if ($cellAddress) {
+            $arr = self::rangeArray($cellAddress);
+        }
+        else {
+            $arr = [
+                'min_col_num' => 0,
+                'min_row_num' => 0,
+            ];
+        }
 
-        return self::colLetter($arr['min_col_num'] + $colOffset) . ($arr['min_row_num'] + $rowOffset);
+        return (!empty($absolute[1]) ? '$' . self::colLetter($colOffset) : self::colLetter($arr['min_col_num'] + $colOffset))
+            . (!empty($absolute[0]) ? '$' . $rowOffset : ($arr['min_row_num'] + $rowOffset));
     }
 
     /**
@@ -427,9 +489,9 @@ class Helper
      */
     public static function shiftAddressRC(string $cellAddress, string $addressRC): string
     {
-        $offsets = self::rangeRelOffsets($addressRC);
+        $offsets = self::rangeRelOffsets($addressRC, $absolute);
 
-        return self::shiftAddress($cellAddress, $offsets[0], $offsets[1]);
+        return self::shiftAddress($cellAddress, $offsets[0], $offsets[1], $absolute);
     }
 
     /**
