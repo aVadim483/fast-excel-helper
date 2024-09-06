@@ -522,7 +522,7 @@ class Helper
      *
      * @return array
      */
-    protected static function rgbToHsl(string $rgb): array
+    public static function rgbToHsl(string $rgb): array
     {
         if ($rgb[0] === '#') {
             $rgb = substr($rgb, 1);
@@ -532,38 +532,48 @@ class Helper
         $g = hexdec(substr($rgb, 2, 2)) / 255;
         $b = hexdec(substr($rgb, 4, 2)) / 255;
 
-        $max = max($r, $g, $b);
         $min = min($r, $g, $b);
+        $max = max($r, $g, $b);
+        $delta = $max - $min;
+
+        $l = ($max + $min) / 2;
 
         $h = 0;
-        $s = 0;
-        $l = ($max + $min) / 2;
-        $d = $max - $min;
+        $s = 0.0;
+        if ($delta > 0) {
+            $s = ($l <= 0.5) ? ($delta / ($max + $min)) : ($delta / (2 - $max - $min));
 
-        if ($d > 0) {
-            $s = $d / (1 - abs(2 * $l - 1));
-
-            if ($max === $r) {
-                $h = 60 * fmod((($g - $b) / $d), 6);
-            } elseif ($max === $g) {
-                $h = 60 * (($b - $r) / $d + 2);
-            } elseif ($max === $b) {
-                $h = 60 * (($r - $g) / $d + 4);
+            if ($r == $max) {
+                $hue = (($g - $b) / 6) / $delta;
+            }
+            elseif ($g == $max) {
+                $hue = (1.0 / 3) + (($b - $r) / 6) / $delta;
+            }
+            else {
+                $hue = (2.0 / 3) + (($r - $g) / 6) / $delta;
             }
 
-            if ($h < 0) {
-                $h += 360;
+            if ($hue < 0) {
+                $hue += 1;
             }
+            if ($hue > 1) {
+                $hue -= 1;
+            }
+
+            $h = (int)($hue * 360);
         }
+        $s = round($s, 3);
+        $l = round($l, 6);
 
-        return [
-            'h' => round($h, 2),
-            's' => round($s * 100, 2),
-            'l' => round($l * 100, 2)
-        ];
+        return ['h' => $h, 's' => $s, 'l' => $l];
     }
 
-    protected static function hslToRgb ($hsl): string
+    /**
+     * @param array $hsl
+     *
+     * @return string
+     */
+    public static function hslToRgb (array $hsl): string
     {
         $h = $hsl['h'];
         $s = $hsl['s'];
@@ -604,12 +614,12 @@ class Helper
             $b = $x;
         }
 
-        $r = ($r + $m) * 255;
-        $g = ($g + $m) * 255;
-        $b = ($b + $m) * 255;
+        $r = (int)floor((($r + $m) < 0) ? 0 : ($r + $m) * 255);
+        $g = (int)floor((($g + $m) < 0) ? 0 : ($g + $m) * 255);
+        $b = (int)floor((($b + $m) < 0) ? 0 : ($b + $m) * 255);
 
-        return '#' . str_pad(dechex((int)floor($r)), 2, '0', STR_PAD_LEFT)
-            . str_pad(dechex((int)floor($g)), 2, '0', STR_PAD_LEFT)
-            . str_pad(dechex((int)floor($b)), 2, '0', STR_PAD_LEFT);
+        return '#' . str_pad(dechex($r), 2, '0', STR_PAD_LEFT)
+            . str_pad(dechex($g), 2, '0', STR_PAD_LEFT)
+            . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
     }
 }
