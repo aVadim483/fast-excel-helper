@@ -527,6 +527,7 @@ class Helper
         if ($rgb[0] === '#') {
             $rgb = substr($rgb, 1);
         }
+
         $r = hexdec(substr($rgb, 0, 2)) / 255;
         $g = hexdec(substr($rgb, 2, 2)) / 255;
         $b = hexdec(substr($rgb, 4, 2)) / 255;
@@ -534,30 +535,32 @@ class Helper
         $max = max($r, $g, $b);
         $min = min($r, $g, $b);
 
-        $h = $s = 0;
+        $h = 0;
+        $s = 0;
         $l = ($max + $min) / 2;
         $d = $max - $min;
 
-        if ($d !== 0) {
+        if ($d > 0) {
             $s = $d / (1 - abs(2 * $l - 1));
 
-            switch ($max) {
-                case $r:
-                    $h = 60 * fmod((($g - $b) / $d), 6);
-                    if ($b > $g) {
-                        $h += 360;
-                    }
-                    break;
-                case $g:
-                    $h = 60 * (($b - $r) / $d + 2 );
-                    break;
-                case $b:
-                    $h = 60 * (($r - $g) / $d + 4 );
-                    break;
+            if ($max === $r) {
+                $h = 60 * fmod((($g - $b) / $d), 6);
+            } elseif ($max === $g) {
+                $h = 60 * (($b - $r) / $d + 2);
+            } elseif ($max === $b) {
+                $h = 60 * (($r - $g) / $d + 4);
+            }
+
+            if ($h < 0) {
+                $h += 360;
             }
         }
 
-        return ['h' => round($h, 2), 's' => round($s, 2), 'l' => round($l, 2)];
+        return [
+            'h' => round($h, 2),
+            's' => round($s * 100, 2),
+            'l' => round($l * 100, 2)
+        ];
     }
 
     protected static function hslToRgb ($hsl): string
