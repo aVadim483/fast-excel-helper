@@ -140,7 +140,7 @@ class Helper
      *
      * @return string Cell label/coordinates, ex: A1, C3, AA42 (or if $absolute==true: $A$1, $C$3, $AA$42)
      */
-    public static function cellAddress(int $rowNumber, int $colNumber, ?bool $absolute = false, bool $absoluteRow = null): string
+    public static function cellAddress(int $rowNumber, int $colNumber, ?bool $absolute = false, ?bool $absoluteRow = null): string
     {
         if ($rowNumber > 0 && $colNumber > 0) {
             $letter = self::colLetter($colNumber);
