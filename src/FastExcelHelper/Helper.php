@@ -322,11 +322,11 @@ class Helper
      * RCtoA1('R5C2', 'B3') => '$B$5'
      *
      * @param string $address
-     * @param string $cellAddress
+     * @param string|null $cellAddress
      *
      * @return string
      */
-    public static function RCtoA1(string $address, string $cellAddress = ''): string
+    public static function RCtoA1(string $address, ?string $cellAddress = ''): string
     {
         if (strpos($address, ':')) {
             [$cell1, $cell2] = explode(':', $address);
