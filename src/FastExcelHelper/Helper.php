@@ -622,4 +622,30 @@ class Helper
             . str_pad(dechex($g), 2, '0', STR_PAD_LEFT)
             . str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
     }
+
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    public static function escapeString(string $str): string
+    {
+        return preg_replace_callback('/(_x[0-9A-Fa-f]{4}_)/', function($matches) {
+            return '_x005F' . $matches[1];
+        }, $str);
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    public static function unescapeString(string $str): string
+    {
+        return preg_replace_callback('/_x005F(_x[0-9A-Fa-f]{4}_)/', function($matches) {
+            return $matches[1];
+        }, $str);
+    }
+
 }

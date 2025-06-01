@@ -161,6 +161,10 @@ final class FastExcelHelperTest extends TestCase
         $this->assertEquals('B2:$B$5', Helper::RCtoA1('R[-1]C:R5C2', 'b3'));
         $this->assertEquals('$A2:$B8', Helper::RCtoA1('R[-1]C1:R[5]C2', 'b3'));
 
+        $original = 'Test: _x0041_, _x202E_, just a text.';
+        $escaped = Helper::escapeString($original);
+        $this->assertEquals('Test: _x005F_x0041_, _x005F_x202E_, just a text.', $escaped);
+        $this->assertEquals($original, Helper::unescapeString($escaped));
     }
 
 }
